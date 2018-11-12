@@ -1,0 +1,673 @@
+swagger: '2.0'
+info:
+  description: Api Documentation
+  version: '1.0'
+  title: iFood APIs
+  termsOfService: 'urn:tos'
+  contact: {}
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0'
+host: 'shop.ifood.com.br'
+basePath: /api/v1
+tags:
+  - name: auth
+    description: Authentication Resources
+  - name: events
+    description: Event Resources
+  - name: orders
+    description: Order Resources
+  - name: products
+    description: Product Resources  
+paths:
+  /auth/login:
+    post:
+      tags:
+        - auth
+      summary: Get a token to make requests 
+      description: Username and password are the same used to access Shop Manager. Your token will be returning in response header.
+      produces:
+        - '*/*'
+      parameters:
+        - name: auth
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/AuthInfo'
+      responses:
+        '200':
+          description: OK
+          headers:
+            'Authorization':
+               description: Token 
+               type: string
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found  
+  /events:
+    get:
+      tags:
+        - events
+      summary: Get all events 
+      operationId: getEventsUsingGET
+      produces:
+        - '*/*'
+      parameters:
+        - name: page
+          in: query
+          description: Number of page starting in 0
+          required: false
+          type: integer
+          format: int32
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/PageImplOrdersReference'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+  /events/acknowledgment:
+    post:
+      tags:
+        - events
+      summary: Notify when an event was successfully integrate in your system and remove it from events queue.
+      operationId: pullEventsUsingPOST
+      consumes:
+        - application/json
+      produces:
+        - '*/*'
+      parameters:
+        - in: body
+          name: events
+          description: events
+          required: true
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Event'
+      responses:
+        '204':
+          description: No Content
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+  /orders:
+    get:
+      tags:
+        - orders
+      summary: Get order applying filters
+      operationId: getOrdersByFilterUsingGET
+      produces:
+        - application/json
+      parameters:
+        - name: start
+          in: query
+          description: initial date (ISO 8601)
+          required: false
+          type: string
+          format: date-time
+        - name: end
+          in: query
+          description: initial date (ISO 8601)
+          required: false
+          type: string
+          format: date-time
+        - name: status
+          in: query
+          description: status
+          required: false
+          type: string
+          enum:
+            - PAID
+            - TO_PAY
+            - PACKING
+            - INVOICING
+            - SHIPPED
+            - DELIVERED
+            - CANCELED
+        - name: delayed
+          in: query
+          description: delayed
+          required: false
+          type: boolean
+        - name: page
+          in: query
+          description: Number of page starting in 0
+          required: true
+          type: integer
+          format: int32
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/PageImplOrder'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+  '/orders/{number}':
+    get:
+      tags:
+        - orders
+      summary: Get order
+      operationId: getOrderUsingGET
+      produces:
+        - '*/*'
+      parameters:
+        - name: number
+          in: path
+          description: number
+          required: true
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/Order'
+        '400':
+          description: Bad Request    
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found  
+        '422':
+          description: Unprocessable Entity
+    put:
+      tags:
+        - orders
+      summary: Notify order delivery delay
+      description: 'Give notice if the orders delivery is delayed, it is required to inform the new due date (ISO 8601 format) and a reason for the delay (optional)'
+      operationId: updateOrderAsLateUsingPUT
+      consumes:
+        - application/json
+      produces:
+        - '*/*'
+      parameters:
+        - name: number
+          in: path
+          description: number
+          required: true
+          type: string
+        - in: body
+          name: orderDelayed
+          description: order
+          required: true
+          schema:
+            $ref: '#/definitions/OrderDelayed'
+      responses:
+        '204':
+          description: No Content
+        '400':
+          description: Bad Request  
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found  
+        '422':
+          description: Unprocessable Entity
+  '/orders/{number}/status':
+    patch:
+      tags:
+        - orders
+      summary: Update order status
+      description: Update an order status. 
+      operationId: updateOrderStatusUsingPATCH
+      consumes:
+        - application/json
+      produces:
+        - '*/*'
+      parameters:
+        - name: number
+          in: path
+          description: number
+          required: true
+          type: string
+        - in: body
+          name: status
+          description: status
+          required: true
+          schema:
+            $ref: '#/definitions/OrderStatus'
+      responses:
+        '204':
+          description: No Content
+        '422':
+          description: Unprocessable Entity
+        '403':
+          description: Forbidden
+  '/products/{sku}/prices':
+    get:
+      tags:
+        - products
+      summary: Get all prices
+      operationId: getPricesUsingGET
+      produces:
+        - '*/*'
+      parameters:
+        - name: sku
+          in: path
+          description: Seller sku
+          required: true
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Product'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+    put:
+      tags:
+        - products
+      summary: Update product price
+      operationId: updateProductPriceUsingPUT
+      consumes:
+        - application/json
+      produces:
+        - '*/*'
+      parameters:
+        - name: sku
+          in: path
+          description: Seller sku
+          required: true
+          type: string
+        - name: quantity
+          in: query
+          description: minimum order quantity
+          required: true
+          type: integer
+          format: int32
+        - in: body
+          name: productPrice
+          description: product price 
+          required: true
+          schema:
+            $ref: '#/definitions/ProductPrice'
+      responses:
+        '204':
+          description: No Content
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+  '/products/{sku}/prices/{priceId}':
+    delete:
+      tags:
+        - products
+      summary: Delete a product price
+      operationId: updateProductPriceUsingDELETE
+      produces:
+        - '*/*'
+      parameters:
+        - name: sku
+          in: path
+          description: Seller sku
+          required: true
+          type: string
+        - name: priceId
+          in: path
+          description: priceId
+          required: true
+          type: integer
+          format: int64
+      responses:
+        '204':
+          description: No Content
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/products/{sku}/stock':
+    get:
+      tags:
+        - products
+      summary: Get product stock
+      operationId: updateProductStockUsingGET
+      produces:
+        - '*/*'
+      parameters:
+        - name: sku
+          in: path
+          description: Seller sku
+          required: true
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/ProductStock'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+    patch:
+      tags:
+        - products
+      summary: Update product stock
+      operationId: updateProductStockUsingPATCH
+      consumes:
+        - application/json
+      produces:
+        - '*/*'
+      parameters:
+        - name: sku
+          in: path
+          description: Seller sku
+          required: true
+          type: string
+        - in: body
+          name: productStock
+          description: product stock
+          required: true
+          schema:
+            $ref: '#/definitions/ProductStock'
+      responses:
+        '204':
+          description: No Content
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden        
+definitions:
+  Address:
+    type: object
+    properties:
+      additionalInformation:
+        type: string
+      city:
+        type: string
+      neighbourhood:
+        type: string
+      number:
+        type: string
+      state:
+        type: string
+      street:
+        type: string
+      zipcode:
+        type: string
+    title: Address
+  Client:
+    type: object
+    properties:
+      cellphone:
+        type: string
+      cnpj:
+        type: string
+      corporateName:
+        type: string
+      fictitiousBusinessName:
+        type: string
+      stateRegistration:
+        type: string
+      telephone:
+        type: string
+      townRegistration:
+        type: string
+    title: Client
+  Event:
+    type: object
+    properties:
+      id:
+        type: string
+    title: Event
+  Item:
+    type: object
+    properties:
+      name:
+        type: string
+      price:
+        type: integer
+        format: int64
+      quantity:
+        type: integer
+        format: int32
+      sku:
+        type: string
+    title: Item
+  Order:
+    type: object
+    properties:
+      address:
+        $ref: '#/definitions/Address'
+      client:
+        $ref: '#/definitions/Client'
+      created:
+        type: string
+        format: date-time
+      deliveryCompany:
+        type: string
+      deliveryTime:
+        type: string
+      discount:
+        type: integer
+        format: int64
+      estimatedDelivery:
+        type: string
+        format: date-time
+      number:
+        type: integer
+        format: int64
+      invoiceNumber:
+        type: string
+      itens:
+        type: array
+        items:
+          $ref: '#/definitions/Item'
+      newEstimatedDelivery:
+        type: string
+        format: date-time
+      observations:
+        type: string
+      paymentDate:
+        type: string
+        format: date-time
+      paymentMethod:
+        type: string
+        enum:
+          - CREDIT_CARD
+          - BOLETO
+      productPrice:
+        type: integer
+        format: int64
+      reason:
+        type: string
+      shipping:
+        type: integer
+        format: int64
+      status:
+        type: string
+        enum:
+          - PAID
+          - TO_PAY
+          - PACKING
+          - INVOICING
+          - SHIPPED
+          - DELIVERED
+          - CANCELED
+      statusInfo:
+        $ref: '#/definitions/StatusInfo'
+      total:
+        type: integer
+        format: int64
+      trackingNumber:
+        type: string
+    title: Order
+  AuthInfo:
+    type: object
+    properties:
+      username:
+        type: string
+      password:
+        type: string
+    title: AuthInfo  
+  OrderDelayed:
+    type: object
+    properties:
+      newEstimatedDelivery:
+        type: string
+        format: date-time
+      reason:
+        type: string
+    title: OrderDelayed  
+  OrderStatus:
+    type: object
+    properties:
+      status:
+        type: string
+        enum:
+          - PACKING
+          - INVOICING
+          - SHIPPED
+          - DELIVERED
+          - CANCELED
+    title: OrderStatus  
+  OrdersReference:
+    type: object
+    properties:
+      created:
+        type: string
+      id:
+        type: string
+      number:
+        type: integer
+        format: int64
+      sellerId:
+        type: integer
+        format: int64
+      type:
+        type: string
+        enum:
+        - WAITING_FOR_PAYMENT
+        - PAID
+        - CANCELED  
+      products:
+        type: array
+        items:
+          "$ref": "#/definitions/ProductInfo"    
+    title: OrdersReference
+  PageImplOrdersReference:
+    type: object
+    properties:
+      content:
+        type: array
+        items:
+          $ref: '#/definitions/OrdersReference'
+      last:
+        type: boolean
+      totalElements:
+        type: integer
+        format: int64
+      totalPages:
+        type: integer
+        format: int32
+    title: PageImplOrdersReference
+  PageImplOrder:
+    type: object
+    properties:
+      content:
+        type: array
+        items:
+          $ref: '#/definitions/Order'
+      last:
+        type: boolean
+      totalElements:
+        type: integer
+        format: int64
+      totalPages:
+        type: integer
+        format: int32
+    title: PageImplOrder
+  ProductInfo:
+    type: object
+    properties:
+      quantity:
+        type: integer
+        format: int32
+      sku:
+        type: string
+    title: ProductInfo  
+  Product:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+      maximumOrderQuantity:
+        type: integer
+        format: int32
+      minimumOrderQuantity:
+        type: integer
+        format: int32
+      price:
+        type: integer
+        format: int64
+    title: Product    
+  ProductStock:
+    type: object
+    properties:
+      stock:
+        type: integer
+        format: int32
+      stockBeingHold:
+        type: integer
+        format: int32
+    title: ProductStock      
+  ProductPrice:
+    type: object
+    properties:
+      maximumOrderQuantity:
+        type: integer
+        format: int32
+      price:
+        type: integer
+        format: int64
+    title: Product      
+  StatusInfo:
+    type: object
+    properties:
+      canceled:
+        type: string
+        example: 'yyyy-MM-dd''T''HH:mm:ss.SSSXXX'
+      delivered:
+        type: string
+        example: 'yyyy-MM-dd''T''HH:mm:ss.SSSXXX'
+      invoiced:
+        type: string
+        example: 'yyyy-MM-dd''T''HH:mm:ss.SSSXXX'
+      paid:
+        type: string
+        example: 'yyyy-MM-dd''T''HH:mm:ss.SSSXXX'
+      shipped:
+        type: string
+        example: 'yyyy-MM-dd''T''HH:mm:ss.SSSXXX'
+    title: StatusInfo
