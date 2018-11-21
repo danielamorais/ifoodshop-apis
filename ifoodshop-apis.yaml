@@ -227,7 +227,8 @@ paths:
       tags:
         - orders
       summary: Update order status
-      description: Update an order status. 
+      description: Update an order status. If you are trying to update your order to 'INVOICING', you can send us an invoice number as shown in Order model. 
+If you are trying to update your order to 'SHIPPED', you can send us a tracking number as shown in Order model. 
       operationId: updateOrderStatusUsingPATCH
       consumes:
         - application/json
