@@ -47,7 +47,7 @@ paths:
           description: Forbidden
         '404':
           description: Not Found  
-  /events:
+  /orders/events:
     get:
       tags:
         - events
@@ -73,7 +73,7 @@ paths:
           description: Forbidden
         '404':
           description: Not Found
-  /events/acknowledgment:
+  /orders/events/acknowledgment:
     post:
       tags:
         - events
