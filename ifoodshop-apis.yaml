@@ -1,19 +1,6 @@
 swagger: '2.0'
 info:
-  description: Há um recurso chamado “produtos”, note que é um modelo de preço progressivo por exemplo:
-      1 - 100 unidades o preço é R$100,00
-      101 - 200 unidades o preço é R$98,00
-      Qualquer atualização de preço, é possível atualizar a quantidade máxima (no exemplo acima é 100 OU 200) e atualizar o preço. Para diferenciar qual preço deve ser atualizado, é preciso repassar a quantidade mínima (1 ou 101). Por exemplo:
-      Atualizar o preço para R$24 e a quantidade máxima como 200 do SKU “3” onde a quantidade mínima é 1
-      https://shop.ifood.com.br/api/v1/products/3/prices?quantity=1 
-
-      {
-          "price": 24,
-          "maximumOrderQuantity": 200
-      }
-
-Note que qualquer possível conflito de faixas de quantidades será retornado um erro. Além disso, é possível visualizar todos os preços de um SKU específico e deletar algum preço. 
-
+  description: teste
   version: '1.0'
   title: iFood APIs
   termsOfService: 'urn:tos'
