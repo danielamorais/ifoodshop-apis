@@ -1,6 +1,6 @@
 swagger: '2.0'
 info:
-  description: teste
+  description: Api Documentation
   version: '1.0'
   title: iFood APIs
   termsOfService: 'urn:tos'
